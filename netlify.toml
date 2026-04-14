@@ -1,5 +1,0 @@
-# ── RUST-OLEUM ORDER FORM — NETLIFY CONFIG ───────────────────
-
-[[edge_functions]]
-  path = "/*"
-  function = "auth"
