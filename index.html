@@ -54,6 +54,7 @@
     .badge-fixture{background:#f3e5f5;color:#6a1b9a}
     .badge-digital{background:#e8f5e9;color:#2e7d32}
     .new-badge{position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;padding:2px 7px;border-radius:3px;text-transform:uppercase;background:var(--ro-red);color:white;box-shadow:0 1px 4px rgba(204,31,54,0.4)}
+    .upd-badge{position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;letter-spacing:0.5px;padding:2px 7px;border-radius:3px;text-transform:uppercase;background:#e65100;color:white;box-shadow:0 1px 4px rgba(230,81,0,0.4)}
     .new-toggle{display:block;width:100%;background:none;border:1.5px dashed var(--ro-red);text-align:left;padding:6px 10px;border-radius:5px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;color:var(--ro-red);font-weight:600;transition:all 0.15s;margin-bottom:2px}
     .new-toggle:hover{background:#ffeef1}
     .new-toggle.active{background:var(--ro-red);color:white;border-style:solid}
@@ -129,8 +130,8 @@
       <button class="type-btn" onclick="setTypeFilter('Store Fixture',this)">Store Fixtures</button>
       <button class="type-btn" onclick="setTypeFilter('Digital Only',this)">Digital Only</button>
     </div>
-    <span class="sidebar-label">New For 2026</span>
-    <button class="new-toggle" id="newToggleDesktop" onclick="toggleNew()">&#10024; Show New Items Only</button>
+    <span class="sidebar-label">2026 Changes</span>
+    <button class="new-toggle" id="newToggleDesktop" onclick="toggleNew()">&#10024; Show New &amp; Updated</button>
     <span class="sidebar-label">Category</span>
     <button class="filter-btn active" onclick="setCategory('all',this)">All Categories</button>
     <button class="filter-btn" onclick="setCategory('General',this)">&#127970; General</button>
@@ -156,7 +157,7 @@
       <input class="search-box mobile-search" type="text" placeholder="Search by SKU or description..." id="mobileSearch" oninput="document.getElementById('searchInput').value=this.value;renderProducts()">
       <div class="mobile-filter-strip" id="mobileFilterStrip">
         <button class="mobile-chip active" onclick="setCategory('all',this);syncMobileChips(this)">All</button>
-        <button class="mobile-chip new-chip" id="newToggleMobile" onclick="toggleNew()" style="border-color:var(--ro-red);color:var(--ro-red)">&#10024; New 2026</button>
+        <button class="mobile-chip new-chip" id="newToggleMobile" onclick="toggleNew()" style="border-color:var(--ro-red);color:var(--ro-red)">&#10024; New &amp; Updated</button>
         <button class="mobile-chip" onclick="setCategory('General',this);syncMobileChips(this)">General</button>
         <button class="mobile-chip" onclick="setCategory('Small Project Paints',this);syncMobileChips(this)">Small Project</button>
         <button class="mobile-chip" onclick="setCategory('Wood Care',this);syncMobileChips(this)">Wood Care</button>
@@ -241,7 +242,7 @@ function renderProducts(){
   let filtered=PRODUCTS.filter(p=>{
     const catMatch=activeCat==='all'||p.cat===activeCat;
     const typeMatch=activeType==='all'||p.type.startsWith(activeType);
-    const newMatch=!newOnly||p.isNew;
+    const newMatch=!newOnly||p.isNew||p.isUpd;
     const searchMatch=!search||p.sku.toLowerCase().includes(search)||p.name.toLowerCase().includes(search);
     return catMatch&&typeMatch&&newMatch&&searchMatch;
   });
@@ -257,7 +258,7 @@ function renderProducts(){
     items.forEach(p=>{
       const inCart=!!cart[p.sku];
       const badge=p.type==='Literature'?'badge-lit':p.type==='Merchandising'?'badge-merch':p.type==='Store Fixture'?'badge-fixture':'badge-digital';
-      html+=`<div class="product-card"><div class="product-image-wrap"><div class="pthumb" id="pimg-${p.sku}" data-sku="${p.sku}">${p.icon}</div>${p.isNew?'<div class="new-badge">New</div>':''}<div class="type-badge ${badge}">${p.type}</div></div><div class="product-info"><div class="product-sku">${p.sku}</div><div class="product-name">${p.name}</div>${p.note?`<div class="product-note">${p.note}</div>`:''}</div><div class="add-section"><input class="qty-input" type="number" min="1" value="1" id="qty-${p.sku}"><button class="add-btn${inCart?' in-cart':''}" onclick="addToCart('${p.sku}')">${inCart?'&#10003; Added':'+ Add'}</button></div></div>`;
+      html+=`<div class="product-card"><div class="product-image-wrap"><div class="pthumb" id="pimg-${p.sku}" data-sku="${p.sku}">${p.icon}</div>${p.isNew?'<div class="new-badge">New</div>':p.isUpd?'<div class="upd-badge">Updated</div>':''}<div class="type-badge ${badge}">${p.type}</div></div><div class="product-info"><div class="product-sku">${p.sku}</div><div class="product-name">${p.name}</div>${p.note?`<div class="product-note">${p.note}</div>`:''}</div><div class="add-section"><input class="qty-input" type="number" min="1" value="1" id="qty-${p.sku}"><button class="add-btn${inCart?' in-cart':''}" onclick="addToCart('${p.sku}')">${inCart?'&#10003; Added':'+ Add'}</button></div></div>`;
     });
     html+='</div></div>';
   });
@@ -288,7 +289,7 @@ function toggleCart(){cartOpen=!cartOpen;document.getElementById('cartPanel').cl
 function setCategory(cat,btn){activeCat=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();}
 function setTypeFilter(type,btn){activeType=type;document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function toggleNew(){newOnly=!newOnly;var d=document.getElementById('newToggleDesktop');var m=document.getElementById('newToggleMobile');if(d){d.classList.toggle('active',newOnly);d.innerHTML=newOnly?'&#10024; Showing New Only &#x2715;':'&#10024; Show New Items Only';}if(m){m.classList.toggle('active',newOnly);if(newOnly){m.style.background='var(--ro-red)';m.style.color='white';}else{m.style.background='white';m.style.color='var(--ro-red)';}}renderProducts();}
+function toggleNew(){newOnly=!newOnly;var d=document.getElementById('newToggleDesktop');var m=document.getElementById('newToggleMobile');if(d){d.classList.toggle('active',newOnly);d.innerHTML=newOnly?'&#10024; Showing New &amp; Updated &#x2715;':'&#10024; Show New &amp; Updated';}if(m){m.classList.toggle('active',newOnly);if(newOnly){m.style.background='var(--ro-red)';m.style.color='white';}else{m.style.background='white';m.style.color='var(--ro-red)';}}renderProducts();}
 function syncMobileChips(btn){document.querySelectorAll('#mobileFilterStrip .mobile-chip:not(.new-chip)').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');}
 
 function initLazyImages(){
